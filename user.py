@@ -362,7 +362,6 @@ def create_order(name: str, phone: str, total: float, status: str) -> None:  # u
 def test_display() -> None:
     i = 0
     # while True:
-    # User details entry removed for testing simplicity
     user_name = get_customer_name("Enter your name: ")
     user_phone = get_customer_phone("Enter your phone number: ")
 
