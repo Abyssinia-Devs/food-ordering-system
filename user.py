@@ -305,7 +305,6 @@ def calculate_subtotal(price: float, quantity: int) -> float:
 
 def calculate_total(menu: Dict[str, List[Dict[str, Any]]] = cart) -> float:
     """Calculate the total amount of the items in the cart."""
-    categories = list(menu.keys())
     total_price = 0.0
 
     for category, items in menu.items():
