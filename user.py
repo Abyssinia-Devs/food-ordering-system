@@ -136,7 +136,7 @@ def get_customer_phone(description: str) -> str:
 ##########################
 
 
-# YOU CAN IMPROVE THE OUTPUT USING ZIM OR OTHER METHODS TO PRINT TABLES SIDE BY SIDE
+# YOU CAN IMPROVE THE OUTPUT USING ZIM OR OTHER METHODS TO PRINT TABLES SIDE BY SIDE (mik, sami🔥🔥🔥)
 def display_menu(menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU) -> None:
     """Display the food menu in a tabular format, grouped by category."""
     for cat_no, (category, items) in enumerate(menu.items(), start=1):
@@ -220,7 +220,7 @@ cart: Dict[str, List[Dict[str, Any]]] = {}
 # However, the general aim of the project is for educational purposes.
 # Therefore, I used a class here for both learning and logical organization of related items.
 # The intention is to define methods that perform CRUD operations on the cart and the main menu.
-class Cart:
+class Cart:  #  NEED IMPROVEMENT
     def add(
         self,
         category: str,
