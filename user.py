@@ -227,14 +227,16 @@ def display_cart():
 
 def test_display():
     while True:
+        # menu display
         display_menu(food_menu)
-        cat = select_food_category("Please select category: ")
-        selected = ALL_CATEGORIES[cat]
-        item = select_food_item(f"Please select food item from '{selected}' ", cat)
+        
+        category_id = select_food_category("Please select category: ")
+        selected_category = ALL_CATEGORIES[category_id]
+        item_id = select_food_item(f"Please select food item from '{selected_category}' ", category_id)
 
-        selected = food_menu[selected][item]["name"]
-        print(f"it seems you prefer {selected}\n okay now ,")
-        amount = get_quantity("How much do you want: ", cat, item)
+        name = food_menu[selected_category][item_id]["name"]
+        print(f"it seems you prefer {name}\n okay now ,")
+        amount = get_quantity("How much do you want: ", category_id, item_id)
 
         print("selected amount: ", amount)
         check = check_stock(amount)  # check whether exist or not
@@ -243,7 +245,7 @@ def test_display():
             continue
 
         # check price
-        price = get_price_each(cat, item)
+        price = get_price_each(category_id, item_id)
         print("price is : ", price)
         print("which should be 60.")
 
@@ -251,8 +253,8 @@ def test_display():
         print("sub total is ", sub_total)
         print("which is 120")
 
-        add_to_cart(cat, item, amount)
-        print(f"you want bought {amount} of {selected}s.\n\n\n\nYour order is now.\n")
+        add_to_cart(category_id, item_id, amount)
+        print(f"you want to bought {amount} from  {selected_category}s.\n\n\n\nYour order is now.\n")
 
         display_cart()
 
@@ -260,7 +262,7 @@ def test_display():
         # print("Done!") if is_deleted else print("Faild to delete!")
 
         total = calculate_total()
-        print("\n\n\n\n\ntotal price is : ", total)
+        print("\n\n\n\n\ntotal price is : ", total)  #There is a bug here. but I am tired.
 
         # price check
         # each_price = get_price_each(cat, item)
