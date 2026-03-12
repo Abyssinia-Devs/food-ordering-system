@@ -1,5 +1,4 @@
 import re
-from select import select
 from typing import Any, Dict, List
 
 from tabulate import tabulate
@@ -7,12 +6,6 @@ from tabulate import tabulate
 MAX_NAME_LEN: int = 20
 PHONE_NUM_LEN: int = 10
 PHONE_NUM_BEGIN: str = "09"
-
-# Available foods list
-# Why this structure for MAIN_MENU is good:
-# 1. You can filter by category easily: foods["main_meal"].
-# 2. Each item has structured details (name, price, quantity).
-# 3. It is scalable: you can easily add fields like "delivery": True or "special_offer": False later.
 
 MAIN_MENU: Dict[str, List[Dict[str, Any]]] = {
     "main_meal": [
@@ -44,6 +37,7 @@ MAIN_MENU: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
+# CRITICAL BUG WE CAN NOT ADD THE SAME PRODUCT NAME IN TWO CATEGORIES (JUST CONVENTION ....NO RULE THAT ENFORCES.) OTHERWISE THERE WILL BE AN ERROR
 
 ###########
 # HELPER FUNCTIONS
@@ -67,7 +61,7 @@ def read_num(description: str) -> str:
         return value
 
 
-def read_range(description: str, start: int, end: int) -> int:
+def read_range(description: str, start: float, end: float) -> float:
     """Accept a value and check that the number is within the predefined range."""
     while True:
         value = read_num(description)
@@ -99,7 +93,6 @@ def get_customer_name(description: str) -> str:
     """Read and validate the customer's name."""
     while True:
         name = read_input(description)
-        # Remove middle spaces to check if the remaining characters are alphabetic
         removed_mid_space = re.sub(r"\s+", "", name)
         if not removed_mid_space.isalpha():
             print("That is not a valid name.")
@@ -136,11 +129,10 @@ def get_customer_phone(description: str) -> str:
 ##########################
 
 
-# YOU CAN IMPROVE THE OUTPUT USING ZIM OR OTHER METHODS TO PRINT TABLES SIDE BY SIDE (mik, sami🔥🔥🔥)
 def display_menu(menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU) -> None:
     """Display the food menu in a tabular format, grouped by category."""
     for cat_no, (category, items) in enumerate(menu.items(), start=1):
-        print(f"\n-----------> Type {cat_no}. {category.upper()} <-----------")
+        print(f"\ncategory {cat_no}. {category.upper()}")
         rows = []
         for item_no, item in enumerate(items, start=1):
             rows.append(
@@ -164,14 +156,17 @@ def select_food_category(
     """Prompt the user to select a category after displaying the menu."""
     categories = list(menu.keys())
     if categories == []:
-        print("Please add some products first in order to delete.")
+        print("Please add some items into your cart first")
         return ""
     total_category = len(categories)
-    category_id = read_range(description, 1, total_category)
+    category_id = int(read_range(description, 1, total_category))
     category_id = category_id - 1  # normalize to 0-based index
     category = categories[category_id]
-
-    return category  # return the name of the category
+    display_category = {}
+    display_category[category] = menu[category]
+    print("Selected category is: ")
+    display_menu(display_category)
+    return category
 
 
 def select_food_item(
@@ -179,9 +174,12 @@ def select_food_item(
 ) -> int:
     """Prompt the user to select an item within the chosen category."""
     total_item_in_selected_category = len(menu[category])
-    item_id = read_range(description, 1, total_item_in_selected_category)
+    if total_item_in_selected_category == 0:
+        print("Item not found!")
+        return -1
+    item_id = int(read_range(description, 1, total_item_in_selected_category))
 
-    return item_id - 1  # normalize to 0-based index
+    return item_id - 1
 
 
 ##########
@@ -194,14 +192,14 @@ def get_quantity(
     category: str,
     item_id: int,
     menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU,
-) -> int:  # Dict[str, List[Dict[str, Any]]] BELEW DATATYPE YILHAL😁
+) -> int:
     """Prompt the user to enter the quantity they want for a specific item."""
     cat = menu[category]
     selected_item = cat[item_id]
     stock_quantity = selected_item["stock_quantity"]
     while True:
         if stock_quantity >= 1:
-            amount = read_range(description, 1, stock_quantity)
+            amount = int(read_range(description, 1, stock_quantity))
             selected_item["stock_quantity"] = stock_quantity - amount
             return amount
 
@@ -213,76 +211,123 @@ def get_quantity(
 # CART CRUD OPERATIONS
 ##############
 
-cart: Dict[str, List[Dict[str, Any]]] = {}
 
+class Cart:
+    def __init__(self):
+        self.cart: Dict[str, List[Dict[str, Any]]] = {}
 
-# We might not need a class here; we could perform the same functionality with functions alone.
-# However, the general aim of the project is for educational purposes.
-# Therefore, I used a class here for both learning and logical organization of related items.
-# The intention is to define methods that perform CRUD operations on the cart and the main menu.
-class Cart:  #  NEED IMPROVEMENT
-    def add(
+    def add_to_cart(
         self,
-        category: str,
-        item_id: int,
-        amount: int,
-        menu: Dict[str, List[Dict[str, Any]]] = cart,
     ) -> None:
-        """Add a selected item to the cart or update the quantity if it exists."""
-        # add value if id does not exist
-        if category not in menu:
-            menu[category] = []
+        """add_to_cart a selected item to the CART or update the quantity if it exists."""
+        display_menu()
+        category = select_food_category("Please select category: ", menu=MAIN_MENU)
+        if category == "":
+            return
+        item_id = select_food_item(
+            f"Please select item from '{category}': ", category, menu=MAIN_MENU
+        )
+        if item_id == -1:
+            return
+        amount = get_quantity("How much do you want? : ", category, item_id)
+        sub_total = calculate_subtotal(get_price_each(category, item_id), amount)
+        if category not in self.cart:
+            self.cart[category] = []
 
         selected_item = MAIN_MENU[category][item_id]
-        for cart_item in menu[category]:
+        for cart_item in self.cart[category]:
             if cart_item["name"] == selected_item["name"]:
-                cart_item["stock_price"] += amount
+                cart_item["stock_quantity"] += amount
+                cart_item["sub_price"] += sub_total
+                print("Item added to CART successfully 🎉.")
                 return
 
         new_item = selected_item.copy()
-        new_item["stock_price"] = amount
-
-        menu[category].append(new_item)
+        new_item["sub_price"] = sub_total
+        new_item["stock_quantity"] = amount
+        self.cart[category].append(new_item)
+        print("Item added to CART successfully 🎉.")
 
     def update(
         self,
-        description: str,
-        name: str,
-        item_id: int,
-        category: str,
-        menu: Dict[str, List[Dict[str, Any]]] = cart,
     ) -> None:
-        """Update the quantity of an item currently in the cart."""
-        if category in cart:
-            main_id = find_id_in_main_menu(
-                name, category
-            )  # Map the ID back to the main menu
-            new_amount = get_quantity(description, category, item_id)
-            menu[category][item_id]["stock_quantity"] = new_amount
+        """Update the quantity of an item currently in the CART."""
+        category = select_food_category("Please select category: ", menu=self.cart)
+        if category == "":
+            return
+        item_id = select_food_item(
+            f"Which item do you want to update from '{category}'?: ",
+            category,
+            menu=self.cart,
+        )
+        if item_id == -1:
+            return
+        name = self.cart[category][item_id]["name"]
+        main_id = find_id_in_main_menu(
+            name, category
+        )  # Map the ID back to the main menu
+        previus_amount = self.cart[category][item_id]["stock_quantity"]
+        MAIN_MENU[category][main_id]["stock_quantity"] += previus_amount  # Put it back
+        new_amount = get_quantity(f"Enter new Quantity for {name}: ", category, main_id)
+        self.cart[category][item_id]["stock_quantity"] = new_amount
+        each_price = get_price_each(category, item_id, menu=self.cart)
+        self.cart[category][item_id]["sub_price"] = calculate_subtotal(
+            each_price, new_amount
+        )
+        print("Updated 🎉")
 
-    def delete(
-        self,
-        category_prompt: str,
-        item_prompt: str,
-        menu: Dict[str, List[Dict[str, Any]]] = cart,
-    ) -> bool:
-        """Delete a selected item from the menu."""
-        category = select_food_category(category_prompt, menu=cart)
-        item_id = select_food_item(item_prompt, category, menu=cart)
-        if menu[category] == [] or menu[category][item_id] == []:
-            print("Nothing to delete.")
-            return False
-        item = menu[category][item_id]
-        menu[category].remove(item)
-        return True
+    def delete(self) -> None:
+        """Delete a selected item from the CART menu."""
+        category = select_food_category(f"Please select category: ", menu=self.cart)
+        if category == "":
+            print("Failed to delete!")
+            return
+        item_id = select_food_item(
+            f"Which item do you want to delete from '{category}'?: ",
+            category,
+            menu=self.cart,
+        )
+        if item_id == -1:
+            print("Faild to delete!")
+            return
+        item = self.cart[category][item_id]
+        self.cart[category].remove(item)
+        if self.cart[category] == []:
+            self.cart.pop(category, None)
+        print("Item deleted successfully 🎉")
+        return
 
-    def review_cart(self) -> None:  # needs modification
-        """Display the current contents of the cart."""
-        display_menu(menu=cart)
+    def review_cart(self) -> None:
+        """Display the current contents of the CART."""
+        if self.cart == {}:
+            print("Please first add some items in your cart to review your cart.")
+            return
+
+        for cat_no, (category, items) in enumerate(self.cart.items(), start=1):
+            print(f"\n Category {cat_no}. {category.upper()}")
+            rows = []
+            for item_no, item in enumerate(items, start=1):
+                rows.append(
+                    [
+                        item_no,
+                        item["name"],
+                        f"{item['price']} Birr",
+                        item["stock_quantity"],
+                        f"{item['sub_price']} Birr",
+                    ]
+                )
+            print(
+                tabulate(
+                    rows,
+                    headers=["No", "Name", "Price", "Quantity", "Sub Price"],
+                    tablefmt="fancy_grid",
+                )
+            )
+        total_price = calculate_total(self.cart)
+        print(f"\n Total price: {total_price} Birr")
 
     def __str__(self) -> str:
-        """String representation of the cart."""
-        return f"cart: {cart}"
+        return f"CART: {self.cart}"
 
 
 ##########
@@ -303,113 +348,106 @@ def calculate_subtotal(price: float, quantity: int) -> float:
     return price * quantity
 
 
-def calculate_total(menu: Dict[str, List[Dict[str, Any]]] = cart) -> float:
-    """Calculate the total amount of the items in the cart."""
+def calculate_total(menu) -> float:
+    """Calculate the total amount of the items in the CART."""
     total_price = 0.0
 
-    for category, items in menu.items():
+    for items in menu.values():
         for item in items:
-            item_id = menu[category].index(item)
-            amount = menu[category][item_id]["stock_quantity"]
-            each_price = get_price_each(category, item_id, menu=menu)
-            sub = calculate_subtotal(each_price, amount)
+            # amount = menu[category][item_id]["stock_quantity"]
+            sub = item["sub_price"]
             total_price += sub
     return total_price
 
 
 def process_payment(description: str, total_price: float) -> float:
-    """Process payment, ensuring it meets the minimum 50% requirement."""
     _50per = total_price / 2
-    attempt = 2
-    while attempt > 0:
-        paid = float(read_num(description))
-        if paid >= _50per:
-            return paid
-        print(f"Your payment must be greater than or equal to {_50per}.")
-        attempt -= 1
-    return 0.0
+    paid = read_range(description, _50per, total_price)
+    return paid
 
 
 ##############
 # CREATED ORDER VIEW
 ##############
 
+order_record = {}
 
-def create_order(name: str, phone: str, total: float, status: str) -> None:  # untested
-    """Display the user's name, phone number, total orders, and payment status."""
+
+def create_order(cart, name, phone):  # untested
+    if cart.cart == {}:
+        print("Please first add some items in your cart to create an order")
+        return
+
+    total_price = calculate_total(menu=cart.cart)
+    pay = process_payment(
+        f"It is time to pay. Please pay at least {total_price / 2.0} Birr: $",
+        total_price,
+    )
+    status = (
+        "paid" if pay == total_price else "pending"
+    )  # WHEN THE USER DOES NOT FULLY PAID I USED PENDING....
+
+    order_record = {
+        "name": name,
+        "phone": phone,
+        "status": status,
+        "total_price": total_price,
+    }
     print("\n🎉 Order created successfully 🎉")
+    cart.cart.clear()
+    return order_record
+
+
+def print_receipt(order_record):
+    # """Display the user's name, phone number, total orders, and payment status."""
+    if order_record is None:
+        return
+    else:
+        name = order_record["name"]
+        phone = order_record["phone"]
+        status = order_record["status"]
+        total_price = order_record["total_price"]
     print(f"Name: {name}")
-    print(f"Phone number: {phone}")
-    print("--------------------")
-    print("Orders:")
-
-    for (
-        category,
-        values,
-    ) in cart.items():
-        item_category = category
-        print(f" Type: {item_category}")
-        for value in range(len(values)):  # Keeping logic compatible
-            item_name = cart[category][value]["name"]
-            item_price = cart[category][value]["price"]
-            amount = cart[category][value]["stock_quantity"]
-            print(f"  - {item_name}, Amount: {amount}, Price: {item_price}")
-
-    print(f"Total price: {total}")
+    print(f"Phone: {phone}")
     print(f"Status: {status}")
+    print(f"Total Price: {total_price}")
 
 
-def test_display() -> None:
-    i = 0
-    # while True:
-    user_name = get_customer_name("Enter your name: ")
-    user_phone = get_customer_phone("Enter your phone number: ")
+def user_flow(menu=MAIN_MENU, order=None):
+    name = get_customer_name("Enter your name: ")
+    phone = get_customer_phone("Enter your phone number: ")
+    print("Welcome 🎉")
+    display_menu()
+    cart = Cart()
+    while True:
+        print("\n1. Display menu again")
+        print("2. Add to cart")
+        print("3. Update cart")
+        print("4. Display cart")
+        print("5. Delete item")
+        print("6. Create order")
+        print("0. Exit")
 
-    display_menu(MAIN_MENU)
+        choice = read_range("> ", 0, 6)
 
-    # Enter an item to the cart
-    category = select_food_category("Please select category: ")
-    item_id = select_food_item(f"Please select item from '{category}': ", category)
+        match choice:
+            case 1:
+                display_menu(menu=MAIN_MENU)
+            case 2:
+                cart.add_to_cart()
+            case 3:
+                cart.update()
+            case 4:
+                cart.review_cart()
+            case 5:
+                cart.delete()
+            case 6:
+                order_record = create_order(cart, name, phone)
+                print_receipt(order_record)
+            case 0:
+                break
 
-    item_name = MAIN_MENU[category][item_id]["name"]
-    amount = get_quantity("How much do you want?: ", category, item_id)
-
-    # Adding to cart
-    cart_i = Cart()
-    cart_i.add(category, item_id, amount)
-    print(f"{amount} of {item_name} added to the cart from {category}.")
-
-    print("_____________________________________________")
-    total =calculate_total()
-    pay = process_payment(f"It is time to pay total price: {total}$", total)
-    status = "paid" if pay > 0 else "pending"
-    
-    create_order(user_name, user_phone, total, status)
-
-    # # Updating cart
-    # cart_i.review_cart()
-    # print("Update your cart:")
-    # print("Your cart is:")
-    # cart_i.review_cart()
-
-    # category = select_food_category(
-    #     "Please select category from your cart: ", menu=cart
-    # )
-    # item_id = select_food_item(
-    #     f"Which item do you want to update from '{category}'?: ",
-    #     category,
-    #     menu=cart,
-    # )
-    # name = cart[category][item_id]["name"]
-    # cart_i.update("Enter amount: ", name, item_id, category)
-    # print("Updated!")
-    # cart_i.review_cart()
-
-    # # if i % 2 != 0:
-    #     is_deleted = cart_i.delete("Please enter category: ", "Please Enter item no: ")
-    #     print("Done!") if is_deleted else print("Failed to delete!")
-    #     cart_i.review_cart()
-    # i += 1
+    return
 
 
-test_display()
+user_flow()
