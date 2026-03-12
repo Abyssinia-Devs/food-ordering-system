@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from tabulate import tabulate
 
@@ -7,37 +7,49 @@ MAX_NAME_LEN: int = 20
 PHONE_NUM_LEN: int = 10
 PHONE_NUM_BEGIN: str = "09"
 
-MAIN_MENU: Dict[str, List[Dict[str, Any]]] = {
-    "main_meal": [
-        {"name": "ፖስታ በቲማቲም ለብለብ", "price": 140, "stock_quantity": 10},
-        {"name": "ፍርፍር", "price": 120, "stock_quantity": 8},
-        {"name": "ሶያ", "price": 160, "stock_quantity": 10},
-        {"name": "ሩዝ በአትክልት", "price": 150, "stock_quantity": 9},
-        {"name": "ድንች ወጥ", "price": 110, "stock_quantity": 14},
-        {"name": "መኮረኒ", "price": 135, "stock_quantity": 11},
-        {"name": "በያይነት", "price": 170, "stock_quantity": 7},
-        {"name": "ፍርፍር በፓስታ", "price": 145, "stock_quantity": 6},
-        {"name": "ቲማቲም ለብለብ በፍርፍር", "price": 155, "stock_quantity": 13},
-        {"name": "ስፔሻል ፍርፍር", "price": 180, "stock_quantity": 5},
-        {"name": "እንቁላል ስልስ", "price": 125, "stock_quantity": 12},
-        {"name": "እንቁላል ፍርፍር", "price": 135, "stock_quantity": 8},
-    ],
-    "fast_food": [
-        {"name": "እርጥብ (normal)", "price": 95, "stock_quantity": 18},
-        {"name": "እርጥብ (avocado)", "price": 110, "stock_quantity": 12},
-        {"name": "እርጥብ (egg)", "price": 105, "stock_quantity": 15},
-        {"name": "ኩኪስ, ስናክ, ብስኩት", "price": 70, "stock_quantity": 30},
-        {"name": "እርጎ", "price": 80, "stock_quantity": 18},
-    ],
-    "drinks": [
-        {"name": "የጀበና ቡና", "price": 60, "stock_quantity": 40},
-        {"name": "macchiato", "price": 75, "stock_quantity": 35},
-        {"name": "tea", "price": 65, "stock_quantity": 40},
-        {"name": "ወተት", "price": 70, "stock_quantity": 33},
-    ],
-}
+MenuItem = Dict[str, Any]
+MenuCategory = Dict[str, Any]
+MenuType = List[MenuCategory]
 
-# CRITICAL BUG WE CAN NOT ADD THE SAME PRODUCT NAME IN TWO CATEGORIES (JUST CONVENTION ....NO RULE THAT ENFORCES.) OTHERWISE THERE WILL BE AN ERROR
+MAIN_MENU: MenuType = [
+    {
+        "category": "main_meal",
+        "items": [
+            {"name": "ፖስታ በቲማቲም ለብለብ", "price": 140, "stock_quantity": 10},
+            {"name": "ፍርፍር", "price": 120, "stock_quantity": 8},
+            {"name": "ሶያ", "price": 160, "stock_quantity": 10},
+            {"name": "ሩዝ በአትክልት", "price": 150, "stock_quantity": 9},
+            {"name": "ድንች ወጥ", "price": 110, "stock_quantity": 14},
+            {"name": "መኮረኒ", "price": 135, "stock_quantity": 11},
+            {"name": "በያይነት", "price": 170, "stock_quantity": 7},
+            {"name": "ፍርፍር በፓስታ", "price": 145, "stock_quantity": 6},
+            {"name": "ቲማቲም ለብለብ በፍርፍር", "price": 155, "stock_quantity": 13},
+            {"name": "ስፔሻል ፍርፍር", "price": 180, "stock_quantity": 5},
+            {"name": "እንቁላል ስልስ", "price": 125, "stock_quantity": 12},
+            {"name": "እንቁላል ፍርፍር", "price": 135, "stock_quantity": 8},
+        ],
+    },
+    {
+        "category": "fast_food",
+        "items": [
+            {"name": "እርጥብ (normal)", "price": 95, "stock_quantity": 18},
+            {"name": "እርጥብ (avocado)", "price": 110, "stock_quantity": 12},
+            {"name": "እርጥብ (egg)", "price": 105, "stock_quantity": 15},
+            {"name": "ኩኪስ, ስናክ, ብስኩት", "price": 70, "stock_quantity": 30},
+            {"name": "እርጎ", "price": 80, "stock_quantity": 18},
+        ],
+    },
+    {
+        "category": "drinks",
+        "items": [
+            {"name": "የጀበና ቡና", "price": 60, "stock_quantity": 40},
+            {"name": "macchiato", "price": 75, "stock_quantity": 35},
+            {"name": "tea", "price": 65, "stock_quantity": 40},
+            {"name": "ወተት", "price": 70, "stock_quantity": 33},
+        ],
+    },
+]
+
 
 ###########
 # HELPER FUNCTIONS
@@ -73,11 +85,38 @@ def read_range(description: str, start: float, end: float) -> float:
             print(f"The choice should be between [{start}, {end}].")
             continue
 
+
+def get_category_block(menu: MenuType, category: str) -> Optional[MenuCategory]:
+    """return category bloc or none"""
+    for category_block in menu:
+        if category_block["category"] == category:
+            return category_block
+    return None
+
+
+def get_items_by_category(menu: MenuType, category: str) -> List[MenuItem]:
+    """return items from the given category"""
+    category_block = get_category_block(menu, category)
+    if category_block is None:
+        return []
+    return category_block["items"]
+
+
 def find_id_in_main_menu(name: str, category: str) -> int:
     """Find and return the index of an item in the MAIN_MENU by its name."""
-    for index, item in enumerate(MAIN_MENU[category]):
+    for index, item in enumerate(get_items_by_category(MAIN_MENU, category)):
         if name == item["name"]:
             return index
+    return -1
+
+
+def get_or_create_category(menu: MenuType, category: str) -> MenuCategory:
+    """Helper function cart to match current menu structure"""
+    category_block = get_category_block(menu, category)
+    if category_block is None:
+        category_block = {"category": category, "items": []}
+        menu.append(category_block)
+    return category_block
 
 
 ########
@@ -125,9 +164,11 @@ def get_customer_phone(description: str) -> str:
 ##########################
 
 
-def display_menu(menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU) -> None:
+def display_menu(menu: MenuType = MAIN_MENU) -> None:
     """Display the food menu in a tabular format, grouped by category."""
-    for cat_no, (category, items) in enumerate(menu.items(), start=1):
+    for cat_no, category_block in enumerate(menu, start=1):
+        category = category_block["category"]
+        items = category_block["items"]
         print(f"\ncategory {cat_no}. {category.upper()}")
         rows = []
         for item_no, item in enumerate(items, start=1):
@@ -146,30 +187,26 @@ def display_menu(menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU) -> None:
 ###############
 
 
-def select_food_category(
-    description: str, menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU
-) -> str:
-    """Prompt the user to select a category after displaying the menu."""
-    categories = list(menu.keys())
-    if categories == []:
+def select_food_category(description: str, menu: MenuType = MAIN_MENU) -> str:
+    """Prompt the user to select a category ."""
+    if menu == []:
         print("Please add some items into your cart first")
         return ""
-    total_category = len(categories)
+    total_category = len(menu)
     category_id = int(read_range(description, 1, total_category))
     category_id = category_id - 1  # normalize to 0-based index
-    category = categories[category_id]
-    display_category = {}
-    display_category[category] = menu[category]
+    category = menu[category_id]["category"]
+    display_category = [menu[category_id]]
     print("Selected category is: ")
     display_menu(display_category)
     return category
 
 
 def select_food_item(
-    description: str, category: str, menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU
+    description: str, category: str, menu: MenuType = MAIN_MENU
 ) -> int:
     """Prompt the user to select an item within the chosen category."""
-    total_item_in_selected_category = len(menu[category])
+    total_item_in_selected_category = len(get_items_by_category(menu, category))
     if total_item_in_selected_category == 0:
         print("Item not found!")
         return -1
@@ -187,10 +224,10 @@ def get_quantity(
     description: str,
     category: str,
     item_id: int,
-    menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU,
+    menu: MenuType = MAIN_MENU,
 ) -> int:
     """Prompt the user to enter the quantity they want for a specific item."""
-    cat = menu[category]
+    cat = get_items_by_category(menu, category)
     selected_item = cat[item_id]
     stock_quantity = selected_item["stock_quantity"]
     while True:
@@ -210,7 +247,7 @@ def get_quantity(
 
 class Cart:
     def __init__(self):
-        self.cart: Dict[str, List[Dict[str, Any]]] = {}
+        self.cart: MenuType = []
 
     def add_to_cart(
         self,
@@ -225,13 +262,15 @@ class Cart:
         )
         if item_id == -1:
             return
-        amount = get_quantity("How much do you want? : ", category, item_id)
+        amount = get_quantity("How much do you want? : ", category, item_id, MAIN_MENU)
+        if amount == 0:
+            return
         sub_total = calculate_subtotal(get_price_each(category, item_id), amount)
-        if category not in self.cart:
-            self.cart[category] = []
 
-        selected_item = MAIN_MENU[category][item_id]
-        for cart_item in self.cart[category]:
+        cart_category = get_or_create_category(self.cart, category)
+
+        selected_item = get_items_by_category(MAIN_MENU, category)[item_id]
+        for cart_item in cart_category["items"]:
             if cart_item["name"] == selected_item["name"]:
                 cart_item["stock_quantity"] += amount
                 cart_item["sub_price"] += sub_total
@@ -241,7 +280,7 @@ class Cart:
         new_item = selected_item.copy()
         new_item["sub_price"] = sub_total
         new_item["stock_quantity"] = amount
-        self.cart[category].append(new_item)
+        cart_category["items"].append(new_item)
         print("Item added to CART successfully 🎉.")
 
     def update(
@@ -258,16 +297,22 @@ class Cart:
         )
         if item_id == -1:
             return
-        name = self.cart[category][item_id]["name"]
+
+        cart_items = get_items_by_category(self.cart, category)
+        name = cart_items[item_id]["name"]
         main_id = find_id_in_main_menu(
             name, category
         )  # Map the ID back to the main menu
-        previus_amount = self.cart[category][item_id]["stock_quantity"]
-        MAIN_MENU[category][main_id]["stock_quantity"] += previus_amount  # Put it back
-        new_amount = get_quantity(f"Enter new Quantity for {name}: ", category, main_id)
-        self.cart[category][item_id]["stock_quantity"] = new_amount
-        each_price = self.cart[category][item_id]['price']
-        self.cart[category][item_id]["sub_price"] = calculate_subtotal(
+        previus_amount = cart_items[item_id]["stock_quantity"]
+        get_items_by_category(MAIN_MENU, category)[main_id][
+            "stock_quantity"
+        ] += previus_amount  # Put it back
+        new_amount = get_quantity(
+            f"Enter new Quantity for {name}: ", category, main_id, MAIN_MENU
+        )
+        cart_items[item_id]["stock_quantity"] = new_amount
+        each_price = cart_items[item_id]["price"]
+        cart_items[item_id]["sub_price"] = calculate_subtotal(
             each_price, new_amount
         )
         print("Updated 🎉")
@@ -286,20 +331,35 @@ class Cart:
         if item_id == -1:
             print("Faild to delete!")
             return
-        item = self.cart[category][item_id]
-        self.cart[category].remove(item)
-        if self.cart[category] == []:
-            self.cart.pop(category, None)
+
+        # CHANGED: delete now works with category objects and restores stock to MAIN_MENU.
+        cart_category = get_category_block(self.cart, category)
+        if cart_category is None:
+            print("Faild to delete!")
+            return
+
+        item = cart_category["items"][item_id]
+        main_id = find_id_in_main_menu(item["name"], category)
+        if main_id != -1:
+            get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += item[
+                "stock_quantity"
+            ]
+
+        cart_category["items"].remove(item)
+        if cart_category["items"] == []:
+            self.cart.remove(cart_category)
         print("Item deleted successfully 🎉")
         return
 
     def review_cart(self) -> None:
         """Display the current contents of the CART."""
-        if self.cart == {}:
+        if self.cart == []:
             print("Please first add some items in your cart to review your cart.")
             return
 
-        for cat_no, (category, items) in enumerate(self.cart.items(), start=1):
+        for cat_no, category_block in enumerate(self.cart, start=1):
+            category = category_block["category"]
+            items = category_block["items"]
             print(f"\n Category {cat_no}. {category.upper()}")
             rows = []
             for item_no, item in enumerate(items, start=1):
@@ -332,10 +392,10 @@ class Cart:
 
 
 def get_price_each(
-    category: str, item_id: int, menu: Dict[str, List[Dict[str, Any]]] = MAIN_MENU
+    category: str, item_id: int, menu: MenuType = MAIN_MENU
 ) -> int:
     """Return the price of the selected item."""
-    selected_item = menu[category][item_id]
+    selected_item = get_items_by_category(menu, category)[item_id]
     return selected_item["price"]
 
 
@@ -344,13 +404,12 @@ def calculate_subtotal(price: float, quantity: int) -> float:
     return price * quantity
 
 
-def calculate_total(menu) -> float:
+def calculate_total(menu: MenuType) -> float:
     """Calculate the total amount of the items in the CART."""
     total_price = 0.0
 
-    for items in menu.values():
-        for item in items:
-            # amount = menu[category][item_id]["stock_quantity"]
+    for category_block in menu:
+        for item in category_block["items"]:
             sub = item["sub_price"]
             total_price += sub
     return total_price
@@ -370,7 +429,7 @@ order_record = {}
 
 
 def create_order(cart, name, phone):  # untested
-    if cart == {}:
+    if cart == []:
         print("Please first add some items in your cart to create an order")
         return
 
@@ -390,12 +449,12 @@ def create_order(cart, name, phone):  # untested
         "total_price": total_price,
     }
     print("\n🎉 Order created successfully 🎉")
-    
+
     return order_record
 
 
 def print_receipt(order_record, menu):
-    # """Display the user's name, phone number, total orders, and payment status."""
+    """Display the user's name, phone number, total orders, payment status and clear the cart"""
     if order_record is None:
         return
     else:
@@ -409,17 +468,12 @@ def print_receipt(order_record, menu):
     print(f"Total Price: {total_price}")
     print("Ordered Items \n")
     rows = []
-    for values in menu.values():
-        
-        for value in values:
-            rows.append([value['stock_quantity'],  value['name']])
-    print(
-        tabulate(rows, headers=["Quantity", "Item"])
-    )
-    
-    menu.clear() #clear cart
-        
-        
+    for category_block in menu:
+        for value in category_block["items"]:
+            rows.append([value["stock_quantity"], value["name"]])
+    print(tabulate(rows, headers=["Quantity", "Item"]))
+
+    menu.clear()  #clear cart
 
 
 def user_flow(menu=MAIN_MENU, order=None):
