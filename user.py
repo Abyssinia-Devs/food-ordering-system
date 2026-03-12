@@ -270,7 +270,7 @@ class Cart:
         MAIN_MENU[category][main_id]["stock_quantity"] += previus_amount  # Put it back
         new_amount = get_quantity(f"Enter new Quantity for {name}: ", category, main_id)
         self.cart[category][item_id]["stock_quantity"] = new_amount
-        each_price = get_price_each(category, item_id, menu=self.cart)
+        each_price = self.cart[category][item_id]['price']
         self.cart[category][item_id]["sub_price"] = calculate_subtotal(
             each_price, new_amount
         )
