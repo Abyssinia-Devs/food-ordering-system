@@ -304,17 +304,15 @@ class Cart:
             name, category
         )  # Map the ID back to the main menu
         previus_amount = cart_items[item_id]["stock_quantity"]
-        get_items_by_category(MAIN_MENU, category)[main_id][
-            "stock_quantity"
-        ] += previus_amount  # Put it back
+        get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += (
+            previus_amount  # Put it back
+        )
         new_amount = get_quantity(
             f"Enter new Quantity for {name}: ", category, main_id, MAIN_MENU
         )
         cart_items[item_id]["stock_quantity"] = new_amount
         each_price = cart_items[item_id]["price"]
-        cart_items[item_id]["sub_price"] = calculate_subtotal(
-            each_price, new_amount
-        )
+        cart_items[item_id]["sub_price"] = calculate_subtotal(each_price, new_amount)
         print("Updated 🎉")
 
     def delete(self) -> None:
@@ -341,9 +339,9 @@ class Cart:
         item = cart_category["items"][item_id]
         main_id = find_id_in_main_menu(item["name"], category)
         if main_id != -1:
-            get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += item[
-                "stock_quantity"
-            ]
+            get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += (
+                item["stock_quantity"]
+            )
 
         cart_category["items"].remove(item)
         if cart_category["items"] == []:
@@ -391,9 +389,7 @@ class Cart:
 ##########
 
 
-def get_price_each(
-    category: str, item_id: int, menu: MenuType = MAIN_MENU
-) -> int:
+def get_price_each(category: str, item_id: int, menu: MenuType = MAIN_MENU) -> int:
     """Return the price of the selected item."""
     selected_item = get_items_by_category(menu, category)[item_id]
     return selected_item["price"]
@@ -473,7 +469,7 @@ def print_receipt(order_record, menu):
             rows.append([value["stock_quantity"], value["name"]])
     print(tabulate(rows, headers=["Quantity", "Item"]))
 
-    menu.clear()  #clear cart
+    menu.clear()  # clear cart
 
 
 def user_flow(menu=MAIN_MENU, order=None):
