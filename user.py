@@ -11,7 +11,7 @@ MenuItem = Dict[str, Any]
 MenuCategory = Dict[str, Any]
 MenuType = List[MenuCategory]
 
-MAIN_MENU: MenuType = [
+FOOD_MENU : MenuType = [
     {
         "category": "main_meal",
         "items": [
@@ -102,9 +102,9 @@ def get_items_by_category(menu: MenuType, category: str) -> List[MenuItem]:
     return category_block["items"]
 
 
-def find_id_in_main_menu(name: str, category: str) -> int:
-    """Find and return the index of an item in the MAIN_MENU by its name."""
-    for index, item in enumerate(get_items_by_category(MAIN_MENU, category)):
+def find_id_in_FOOD_MENU (name: str, category: str) -> int:
+    """Find and return the index of an item in the FOOD_MENU  by its name."""
+    for index, item in enumerate(get_items_by_category(FOOD_MENU , category)):
         if name == item["name"]:
             return index
     return -1
@@ -164,7 +164,7 @@ def get_customer_phone(description: str) -> str:
 ##########################
 
 
-def display_menu(menu: MenuType = MAIN_MENU) -> None:
+def display_menu(menu: MenuType = FOOD_MENU ) -> None:
     """Display the food menu in a tabular format, grouped by category."""
     for cat_no, category_block in enumerate(menu, start=1):
         category = category_block["category"]
@@ -187,7 +187,7 @@ def display_menu(menu: MenuType = MAIN_MENU) -> None:
 ###############
 
 
-def select_food_category(description: str, menu: MenuType = MAIN_MENU) -> str:
+def select_food_category(description: str, menu: MenuType = FOOD_MENU ) -> str:
     """Prompt the user to select a category ."""
     if menu == []:
         print("Please add some items into your cart first")
@@ -203,7 +203,7 @@ def select_food_category(description: str, menu: MenuType = MAIN_MENU) -> str:
 
 
 def select_food_item(
-    description: str, category: str, menu: MenuType = MAIN_MENU
+    description: str, category: str, menu: MenuType = FOOD_MENU 
 ) -> int:
     """Prompt the user to select an item within the chosen category."""
     total_item_in_selected_category = len(get_items_by_category(menu, category))
@@ -224,7 +224,7 @@ def get_quantity(
     description: str,
     category: str,
     item_id: int,
-    menu: MenuType = MAIN_MENU,
+    menu: MenuType = FOOD_MENU ,
 ) -> int:
     """Prompt the user to enter the quantity they want for a specific item."""
     cat = get_items_by_category(menu, category)
@@ -254,22 +254,22 @@ class Cart:
     ) -> None:
         """add_to_cart a selected item to the CART or update the quantity if it exists."""
         display_menu()
-        category = select_food_category("Please select category: ", menu=MAIN_MENU)
+        category = select_food_category("Please select category: ", menu=FOOD_MENU )
         if category == "":
             return
         item_id = select_food_item(
-            f"Please select item from '{category}': ", category, menu=MAIN_MENU
+            f"Please select item from '{category}': ", category, menu=FOOD_MENU 
         )
         if item_id == -1:
             return
-        amount = get_quantity("How much do you want? : ", category, item_id, MAIN_MENU)
+        amount = get_quantity("How much do you want? : ", category, item_id, FOOD_MENU )
         if amount == 0:
             return
         sub_total = calculate_subtotal(get_price_each(category, item_id), amount)
 
         cart_category = get_or_create_category(self.cart, category)
 
-        selected_item = get_items_by_category(MAIN_MENU, category)[item_id]
+        selected_item = get_items_by_category(FOOD_MENU , category)[item_id]
         for cart_item in cart_category["items"]:
             if cart_item["name"] == selected_item["name"]:
                 cart_item["stock_quantity"] += amount
@@ -300,15 +300,15 @@ class Cart:
 
         cart_items = get_items_by_category(self.cart, category)
         name = cart_items[item_id]["name"]
-        main_id = find_id_in_main_menu(
+        main_id = find_id_in_FOOD_MENU (
             name, category
         )  # Map the ID back to the main menu
         previus_amount = cart_items[item_id]["stock_quantity"]
-        get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += (
+        get_items_by_category(FOOD_MENU , category)[main_id]["stock_quantity"] += (
             previus_amount  # Put it back
         )
         new_amount = get_quantity(
-            f"Enter new Quantity for {name}: ", category, main_id, MAIN_MENU
+            f"Enter new Quantity for {name}: ", category, main_id, FOOD_MENU 
         )
         cart_items[item_id]["stock_quantity"] = new_amount
         each_price = cart_items[item_id]["price"]
@@ -330,16 +330,16 @@ class Cart:
             print("Faild to delete!")
             return
 
-        # CHANGED: delete now works with category objects and restores stock to MAIN_MENU.
+        # CHANGED: delete now works with category objects and restores stock to FOOD_MENU .
         cart_category = get_category_block(self.cart, category)
         if cart_category is None:
             print("Faild to delete!")
             return
 
         item = cart_category["items"][item_id]
-        main_id = find_id_in_main_menu(item["name"], category)
+        main_id = find_id_in_FOOD_MENU (item["name"], category)
         if main_id != -1:
-            get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += (
+            get_items_by_category(FOOD_MENU , category)[main_id]["stock_quantity"] += (
                 item["stock_quantity"]
             )
 
@@ -389,7 +389,7 @@ class Cart:
 ##########
 
 
-def get_price_each(category: str, item_id: int, menu: MenuType = MAIN_MENU) -> int:
+def get_price_each(category: str, item_id: int, menu: MenuType = FOOD_MENU ) -> int:
     """Return the price of the selected item."""
     selected_item = get_items_by_category(menu, category)[item_id]
     return selected_item["price"]
@@ -472,7 +472,7 @@ def print_receipt(order_record, menu):
     menu.clear()  # clear cart
 
 
-def user_flow(menu=MAIN_MENU, order=None):
+def user_flow(menu=FOOD_MENU , order=None):
     name = get_customer_name("Enter your name: ")
     phone = get_customer_phone("Enter your phone number: ")
     print("Welcome 🎉")
@@ -491,7 +491,7 @@ def user_flow(menu=MAIN_MENU, order=None):
 
         match choice:
             case 1:
-                display_menu(menu=MAIN_MENU)
+                display_menu(menu=FOOD_MENU )
             case 2:
                 cart.add_to_cart()
             case 3:
