@@ -504,6 +504,7 @@ def user_flow(menu=FOOD_MENU , order=None):
                 order_record = create_order(cart.cart, name, phone)
                 print_receipt(order_record, menu=cart.cart)
             case 0:
+                print("Good Bay!")
                 break
 
     return
