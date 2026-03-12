@@ -49,7 +49,7 @@ def read_input(description: str) -> str:
     return input(description).strip()
 
 
-def read_num(description: str) -> str:
+def read_num(description: str) -> float:
     """Read numeric input (floats and integers) only."""
     while True:
         value = read_input(description)
@@ -58,24 +58,20 @@ def read_num(description: str) -> str:
         except ValueError as e:
             print(f"Please enter only numbers. {e}")
             continue
-        return value
+        return float(value)
 
 
 def read_range(description: str, start: float, end: float) -> float:
     """Accept a value and check that the number is within the predefined range."""
     while True:
         value = read_num(description)
-        if value.isdigit():
-            value_int = int(value)
-            condition = value_int >= start and value_int <= end
-            if condition:
-                return value_int
-            else:
-                print(f"The choice should be between [{start}, {end}].")
-                continue
-        print("Something went wrong, try again.")
-        continue
 
+        condition = value >= start and value <= end
+        if condition:
+            return value
+        else:
+            print(f"The choice should be between [{start}, {end}].")
+            continue
 
 def find_id_in_main_menu(name: str, category: str) -> int:
     """Find and return the index of an item in the MAIN_MENU by its name."""
@@ -374,11 +370,11 @@ order_record = {}
 
 
 def create_order(cart, name, phone):  # untested
-    if cart.cart == {}:
+    if cart == {}:
         print("Please first add some items in your cart to create an order")
         return
 
-    total_price = calculate_total(menu=cart.cart)
+    total_price = calculate_total(menu=cart)
     pay = process_payment(
         f"It is time to pay. Please pay at least {total_price / 2.0} Birr: $",
         total_price,
@@ -394,11 +390,11 @@ def create_order(cart, name, phone):  # untested
         "total_price": total_price,
     }
     print("\n🎉 Order created successfully 🎉")
-    cart.cart.clear()
+    
     return order_record
 
 
-def print_receipt(order_record):
+def print_receipt(order_record, menu):
     # """Display the user's name, phone number, total orders, and payment status."""
     if order_record is None:
         return
@@ -411,6 +407,19 @@ def print_receipt(order_record):
     print(f"Phone: {phone}")
     print(f"Status: {status}")
     print(f"Total Price: {total_price}")
+    print("Ordered Items \n")
+    rows = []
+    for values in menu.values():
+        
+        for value in values:
+            rows.append([value['stock_quantity'],  value['name']])
+    print(
+        tabulate(rows, headers=["Quantity", "Item"])
+    )
+    
+    menu.clear() #clear cart
+        
+        
 
 
 def user_flow(menu=MAIN_MENU, order=None):
@@ -442,8 +451,8 @@ def user_flow(menu=MAIN_MENU, order=None):
             case 5:
                 cart.delete()
             case 6:
-                order_record = create_order(cart, name, phone)
-                print_receipt(order_record)
+                order_record = create_order(cart.cart, name, phone)
+                print_receipt(order_record, menu=cart.cart)
             case 0:
                 break
 
