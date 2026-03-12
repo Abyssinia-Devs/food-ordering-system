@@ -341,7 +341,7 @@ class Cart:
         if main_id != -1:
             get_items_by_category(MAIN_MENU, category)[main_id]["stock_quantity"] += (
                 item["stock_quantity"]
-            )
+            ) # put stock quantity back to food_menu
 
         cart_category["items"].remove(item)
         if cart_category["items"] == []:
