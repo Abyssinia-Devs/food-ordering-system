@@ -184,11 +184,11 @@ def select_food_item(
     description: str, category: str, menu: MenuType
 ) -> int:
     """Prompt the user to select an item within the chosen category."""
-    total_item_in_selected_category = len(get_items_by_category(menu, category))
-    if total_item_in_selected_category == 0:
+    total_items_in_selected_category = len(get_items_by_category(menu, category))
+    if total_items_in_selected_category == 0:
         print("Item not found!")
         return -1
-    item_id = int(read_range(description, 1, total_item_in_selected_category))
+    item_id = int(read_range(description, 1, total_items_in_selected_category))
 
     return item_id - 1
 
@@ -205,8 +205,8 @@ def get_quantity(
     menu: MenuType,
 ) -> int:
     """Prompt the user to enter the quantity they want for a specific item."""
-    cat = get_items_by_category(menu, category)
-    selected_item = cat[item_id]
+    items = get_items_by_category(menu, category)
+    selected_item = items[item_id]
     stock_quantity = selected_item["stock_quantity"]
     while True:
         if stock_quantity >= 1:
@@ -236,14 +236,13 @@ class Cart:
         item_id = select_food_item(f"Please select item from '{category}': ", category, menu=FOOD_MENU)
         if item_id == -1:
             return
-        amount = get_quantity("How much do you want? : ", category, item_id, FOOD_MENU )
+        amount = get_quantity("How much do you want? : ", category, item_id, menu=FOOD_MENU )
         if amount == 0:
             return
         sub_total = calculate_subtotal(get_price_each(category, item_id,FOOD_MENU), amount)
 
         cart_category = get_or_create_category(self.cart, category)
 
-        selected_item = get_items_by_category(FOOD_MENU , category)[item_id]
         for cart_item in cart_category["items"]:
             if cart_item["name"] == selected_item["name"]:
                 cart_item["stock_quantity"] += amount
@@ -262,7 +261,7 @@ class Cart:
         category = select_food_category("Please select category: ", menu=self.cart)
         if category == "":
             return
-        item_id = select_food_item(
+        item_id = select_food_item_id(
             f"Which item do you want to update from '{category}'?: ",
             category,
             menu=self.cart,
@@ -293,7 +292,7 @@ class Cart:
         if category == "":
             print("Failed to delete!")
             return
-        item_id = select_food_item(
+        item_id = select_food_item_id(
             f"Which item do you want to delete from '{category}'?: ",
             category,
             menu=self.cart,
