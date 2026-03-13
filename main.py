@@ -1,5 +1,6 @@
 import random
 from user import user_flow
+from owner import owner_flow
 from typing import Any, Dict, List
 
 MenuItem = Dict[str, Any]
@@ -99,7 +100,7 @@ def initialize_food_menu() -> MenuType:
 def initialize_orders():
     orders = []
     return orders
-
+orders = initialize_orders()
 def main_menu():
     print(
         """
@@ -119,9 +120,9 @@ def main_menu():
             print("\nPlease enter only a number from 1 to 3\n")
             continue
         if choice == 1:
-            user_flow( initialize_food_menu(), initialize_orders())
+            user_flow( initialize_food_menu(), orders)
         if choice == 2:
-            print(initialize_orders())
+            owner_flow(initialize_food_menu(), orders)
         if choice == 3:
             print("\nWe hope to serve you again soon!\n")
             return
