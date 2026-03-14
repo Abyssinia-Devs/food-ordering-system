@@ -78,7 +78,7 @@ def get_or_create_category(menu: MenuType, category: str) -> MenuCategory:
         menu.append(category_block)
     return category_block
 
-def generate_next_order_id(orders):
+def generate_next_order_id(orders): #We need comment here!
     while True:
         rand_int = random.randint(1, 1000)
         next_order_id = "ORD-" + f"{str(rand_int):0>3}"
