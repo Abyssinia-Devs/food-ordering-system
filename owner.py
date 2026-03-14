@@ -1,6 +1,14 @@
 owner_password='sam123'
+import pwinput
 from tabulate import tabulate
-from helper_func import read_input, read_num, read_range, display_food_category, display_item_by_category, display_menu,select_food_category
+from rich.console import Console
+from rich.table import Table
+from collections import defaultdict
+from typing import Any, Dict, List
+import datetime
+
+
+#from helper_func import read_input, read_num, read_range, display_food_category, display_item_by_category, display_menu,select_food_category
 # This program simulates an owner management system for a restaurant.
 # The owner can login with a password and then:
 # - Add new food items to categories (main meal, fast food, drinks)
@@ -12,455 +20,343 @@ from helper_func import read_input, read_num, read_range, display_food_category,
 # The program uses nested menus and input validation to interact with the owner.
 
 # ==================== owner auth ======================
-def owner_login():
-    passkey =read_input("Enter your password: ")
-    if passkey==owner_password:
-        return True
-    else:
-        return False
+MenuItem = Dict[str, Any]
+MenuCategory = Dict[str, Any]
+MenuType = List[MenuCategory]
 
-def owner_menu():
-    print('1.Add Food')
-    print('2.Delete Food')
-    print('3.Update Price')
-    print('4.Update stock')
-    print('5.View orders')
-    print('6.View sales summary')
-    print('0.EXIT')
-class Menu:
-    def add_food(self, food_menu):
-        while True:
 
-            print("-"*10)
-            print("1.To add food.")
-            print("0.To Exit.")
-            print("-"*10)
-            
-            choice=read_range(">", 0, 1)
-            if choice==0:
-                break
-            
-            elif choice==1:
-                display_food_category(food_menu)
-                category=select_food_category("Select food category: ", food_menu)
+console = Console()  # Create a Rich Console object to print styled text, tables, and other rich content to the terminal  
+now = datetime.datetime.now() # get current date and time
 
-                    
-            #     except ValueError:
-            #         print("Enter numbers only.")
-            #         continue
-            #     if category==0:
-            #         break
-                
-            #     elif category in [1,2,3]:
-            #         items=food_menu[category-1]['items']    
-                
-            #         print(f"-----------Current--{food_menu[category-1]['category']}------------------------")
-            #         current_food_menu_list(items)
-
-            #         try:
-            #             foodsto_add=int(input('Enter the number of foods to be added: '))
-                    
-            #         except ValueError:
-            #             print('Enter numbers onlyl.')
-            #             continue
-                        
-            #             for k in range(0,(foodsto_add)):
-                        
-            #                 exist=False
-            #                 name = input("Name: ").strip().replace(" ", "")
-                            
-            #                 try:
-                                
-            #                     price=float(input('Price: '))
-            #                     stock=int(input("Available_Sock: "))
-                            
-            #                 except ValueError:
-                                
-            #                     print("Error Enter numbers only.")
-            #                     continue
-                        
-            #                 for j in range(len(items)):
-                            
-            #                     if name.lower() == items[j]['name'].lower():
-                                
-            #                         exist=True
-            #                         break
-                            
-            #                 if not exist:
-            #                     if (price >0) and (stock >=0) and name:
-                        
-            #                         items.append({'name':name,'price':price,'stock_quantity':stock})
-            #                         print(f"✅{name} added successfully!")
-                                    
-            #                     else:
-            #                         print("Invalid.")
-                            
-            #                 elif exist:
-            #                     print(f"{name} already exist!❌")
-                        
-            #                 print(f"-----------Updated {food_menu[category-1]['category']}------------------------")
-            #                 current_food_menu_list(items)
-                    
-            #         else:
-            #             print("Invalid.")
-            
-            # except ValueError:
-                
-            #     print('Error enter numbers only.')        
-
-                
-    def delete_food(self, food_menu):
-        
-        def current_food_menu_list(items):
-            
-            if len(items)>0:
-                for i in range(len(items)):
-
-                    print(f"{i+1}.Name--{items[i]['name']}")
-                    print(f"Price--{items[i]['price']}")
-                    print(f"Stock--{items[i]['stock_quantity']}")
-                    print("-"*35)
-            else:
-                print("NO food.")
-                
-        while True:
-
-            print("-"*10)
-            print("1.To delete food.")
-            print("0.To Exit.")
-            print("-"*10)
-            
-            try:
-                choice=int(input("Enter your choice: "))
-                
-            except ValueError:
-                print("Enter from the given numbers only.")
-                continue
-            
-            if choice==0:
-                break
-            
-            elif choice==1:
-                
-                while True:
-                    print("1.For Main_meal ")
-                    print("2.For Fast_food")
-                    print("3.For Drinks")
-                    print("0.Back to main")
-                
-                    try:
-                        choice_category=int(input("Enter your choice: "))
-                
-                    except ValueError :
-                        print("Enter from the given numbers only.")
-                        continue
-                    
-                    if choice_category==0:
-                        break
-                    
-                    elif choice_category in (1,2,3):
-                        items=food_menu[choice_category-1]['items']   
-                        print(f"----------- Current {food_menu[choice_category-1]['category']}------------------------")
-                        current_food_menu_list(items)
-                    
-                            
-                        try:
-                            foods_to_delete=int(input('Enter the number of foods to be deleted.'))
-                        
-                        except ValueError:
-                            print('Enter numbers only.')
-                            continue
-                        
-                        indexes = []
-                        
-                        if (foods_to_delete) <= len(items):
-                            for k in range(1,(foods_to_delete)+1):
-                        
-                                #exist=False
-                                try:
-                                    index=int(input('Index of food '))
-                                
-                                except ValueError:
-                                    print("Enter numbers only.")
-                                    continue
-                                
-                                if 1<= index <= len(items):
-                                    indexes.append(index-1)
-                                    
-                                else:
-                                    print("Invalid index")
-                                
-                            for index in sorted(indexes, reverse=True):
-                                
-                                deleted_food = items.pop(index)
-                                print(f"{deleted_food['name']} deleted.")
-                            
-                            print(f"-----------After deleted---{food_menu[choice_category-1]['category']}------------------------")
-                            current_food_menu_list(items)
-                            
-                            print("-"*40)    
-                                
-                        else:
-                            print(f" Out of food -->  number of current foods are {len(items)}")
-                    
-                    else:
-                        print("Invalid.")
-    
-
-    def update_food_price(self, food_menu):
-        
-        def current_food_menu_list(choice_category):
-            
-            items = food_menu[choice_category-1]['items']
-            
-            if len(items) > 0:
-                
-                for i, item in enumerate(items, start=1):
-                    
-                    print(f"{i}. Name--{item['name']}")
-                    print(f"Price--{item['price']}")
-                    print(f"Stock--{item['stock_quantity']}")
-                    print("-"*35)
-            else:
-                print("NO food.")
-
-        while True:
-            print("-"*10)
-            print("1.Update the price.")
-            print("0.To Exit.")
-            print("-"*10)
-
-            try:
-                choice = int(input("Enter your choice: "))
-                
-            except ValueError:
-                print("Enter numbers only.")
-                continue
-
-            if choice == 0:
-                break
-            
-            elif choice == 1:
-                
-                while True:
-                    print("1. Main_meal")
-                    print("2. Fast_food")
-                    print("3. Drinks")
-                    print("0.Back to main")
-
-                    try:
-                        category = int(input("Choose a category: "))
-                        
-                    except ValueError:
-                        print("Enter numbers only.")
-                        continue
-
-                    if category == 0:
-                        break
-                    
-                    elif category in [1,2,3]:
-                        items = food_menu[category-1]['items']
-                        print(f"-----------Current {food_menu[category-1]['category']}------------------------")
-                        current_food_menu_list(category)
-
-                        try:
-                            food_index = int(input('Enter the index of food you want to update the price: '))
-                            new_price = float(input("Enter the new price: "))
-                        
-                        except ValueError:
-                            print("Enter numbers only.")
-                            continue
-
-                        if 1 <= food_index <= len(items) and new_price > 0:
-                        
-                            old_price = items[food_index-1]['price']
-                            items[food_index-1]['price'] = new_price
-                            print(f"${old_price} updated to ${new_price}")
-                        
-                        else:
-                            print(f"Invalid index. Current food index is 1 to {len(items)}.")
-
-                        print("-----------After updated price------------------------")
-                        current_food_menu_list(category)
-                    else:
-                        print("Invalid.")
-            
-    def update_food_stock(self, food_menu):
-        
-        def current_food_menu_list(choice_category):
-            items = food_menu[choice_category-1]['items']
-            if len(items)>0:
-                
-                for i in range(len(items)):
-
-                    print(f"{i+1}.Name--{items[i]['name']}")
-                    print(f"Price--{items[i]['price']}")
-                    print(f"Stock--{items[i]['stock_quantity']}")
-                    print("-"*35)
-            else:
-                print("NO food.")
-        
-        while True:
-
-            print("-"*10)
-            print("1.Update the stock_quantity.")
-            print("0.To Exit.")
-            print("-"*10)
-                
-            try:
-                choice=int(input("Enter your choice: "))
-                
-            except ValueError:
-                print("Enter from the given numbers only.")
-                continue
-            
-            if choice==0:
-                break
-            
-            elif choice==1:
-                
-                while True:
-                    
-                        print("1.For Main_meal ")
-                        print("2.For Fast_food")
-                        print("3.For Drinks")
-                        print("0.Back to main")
-                
-                        try:
-                            choice_category=int(input("Enter your choice: "))
-                
-                        except ValueError :
-                            print("Enter from the given numbers only.")
-                            continue
-                        
-                        if choice_category==0:
-                            break
-                    
-                        elif choice_category in (1,2,3):
-                            items = food_menu[choice_category-1]['items']
-                            print(f"--------------{food_menu[choice_category-1]['category']}---------------------")
-                        
-                            current_food_menu_list(choice_category)
-                        
-                            try:
-                                food_stock_update=int(input('Enter the index of food you want to update the stock Quantity.'))
-                                new_stock=int(input("Enter the new stock: "))
-                            
-                            except ValueError:
-                            
-                                print('Enter numbers only.')
-                                continue
-                        
-                            if (1<=food_stock_update <=len(items)) and (new_stock >=0):
-                            
-                                old_stock = items[food_stock_update-1]['stock_quantity']
-                                items[food_stock_update-1]['stock_quantity']=new_stock
-                                print(f"{old_stock} updated to {new_stock}")
-                        
-                            else:
-                            
-                                print(f"{food_stock_update}- Invalid index-- your current food index is up t0 1--{len(items)}.")
-                        
-                                print(f"-----------Current {food_menu[choice_category-1]['category']}------------------------")
-                            
-                                current_food_menu_list(choice_category)
-                                
-                        else:
-                            print("Invalid.")
-                        
-                    
-
-# [{'order_id': 'ORD-525', 'name': 'mik', 'phone': '0987654321', 'items': [{'name': 'tea', 'price': 65, 'stock_quantity': 3, 'sub_price': 195}], 'status': 'pending', 'total_price': 195.0}]
-def view_orders(orders):
-
-    if len(orders)==0:
-
-        print(' THERE IS NO ORDER YET.')
-        return
-    print("*" *30)
+def food_sales_(orders)->dict:
+    food_sales_price = defaultdict(int)
     for order in orders:
-
-        print(f"order_id-{order['order_id']}")
-        print(f"Customer_Name-{order['name']}")
-        print(f"Phone-No-{order['phone']}")
-        print("Items:")
-        rows=[]
-        for role_no, item in enumerate(order['items'],1):
-            rows.append(
-                [role_no, item["name"], item["stock_quantity"]]
-            )
-        print(tabulate(rows,  headers=["No", "Name","Quantity"], tablefmt="fancy_grid"))
-        print(f"Total${order['total_price']}")
-        print(f"Status-{order['status']}")
-        print("-"*30)
-    print("*" *30)
+        for item in order["items"]:
+            food_sales_price[item["name"]] += (item["price"]*item['stock_quantity'])
+    return (food_sales_price)
 
 
-def view_sales_summary(orders):
+def bar_graph(orders)->None:
+    if not orders:
+        console.print("[red] There is no order [/red]")
+    food_sales_total_price=food_sales_(orders)
+    max_sales_total=max(food_sales_total_price.values())
+    bar_width=20
+    table = Table(title="Food Sales", title_style="bold purple italic underline")
+    table.add_column("Food", header_style="bold cyan")
+    table.add_column("Sales Price", justify="right",header_style='bold blue')
+    table.add_column("Graph",header_style='bold green')
     
-    summary={
-        'total_sales':0,
-        'total_orders':len(orders),
-        'average_sales':0
-    }
-    for order in orders:
-        summary['total_sales']+=order['total']
-    try:
-        summary['average_sales']=summary['total_sales']/summary['total_orders']
-    except ZeroDivisionError:
-        print('There is no order')
+    for food,sales_total in food_sales_total_price.items():
+        if not max_sales_total:
+            console.print("There is no max values")
+            return
+        bar_length = int((sales_total / max_sales_total) * bar_width) 
+        bar ="◉" * bar_length #"█" 
+        table.add_row(food, str(sales_total), f"[green]{bar}[/green]")
+    console.print(table)
+    
+    
+def owner_login()->bool:
+    trials=3
+    while trials>0:
+        passkey = pwinput.pwinput(prompt="Enter password: ", mask="*").strip()
+            
+        if passkey==owner_password:
+            return True
         
+        trials-=1
+        console.print(f"Incorrect Password! [bold red]{trials}[/bold red] left")
+
     
-    print('________________________SUMARRY____________________________')
-    print("-"*30)
-    print(f"{'Items':<15} | {'Values':>10}")
-    print("-"*30)
-    for Item,Value in summary.items():
-        print(f"{Item:<15} | {Value:>10}")
-    print("-"*30)
-    print("__"*29)
 
-
-def owner_flow(food_menu,orders):
-    menu = Menu()
+def read_int(prompt, min_val=None, max_val=None)->int:
     while True:
-        print('------------------------------------')
-        print("1. Enter password")
-        print('0. Exit')
-        print('------------------------------------')
-
-        choice = read_range(">",0,1)
-        if choice == 0:
-            print("Exiting Owner Control Panel.")
-            break
-        if choice == 1:
-            authentication = owner_login()
-            if authentication:
-                print("Welcome!")
-            else:
-                print('Incorrect password.')
+        try:
+            value = int(input(prompt))
+            if (min_val is not None and value < min_val) or (max_val is not None and value > max_val):
+                console.print(f"Enter a number between {min_val} and {max_val}.")
                 continue
+            return value
+        except ValueError:
+            console.print("[red3]Enter a valid number.[/red3]")
+            
+            
+def read_float(prompt, min_val=None)->float:
+    while True:
+        try:
+            value = float(input(prompt))
+            if min_val is not None and value < min_val:
+                console.print(f"Enter a value >= {min_val}.")
+                continue
+            return value
+        except ValueError:
+            console.print(f"[red3]Enter a valid number .[/red3]")
 
-            while True:
-                owner_menu()
-                choice=read_range(">", 0, 6)
-                if choice==1:
-                    menu.add_food(food_menu)
-                elif choice==2:
-                    menu.delete_food(food_menu)
+
+def display_food_category(menu:MenuType)->None:
+    print("\nMenu Categories")
+    for index, category in enumerate(menu, 1):
+        console.print(f"{index}. {category['category'].upper()}")
+
+
+
+
+class Owner:
+    def __init__(self, menu: List[Dict], orders: List[Dict]):
+        self.menu = menu
+        self.orders = orders
     
-                elif choice ==3:
-                    menu.update_food_price(food_menu)
     
-                elif choice ==4:
-                    menu.update_food_stock(food_menu)
-                elif choice==5:
-                    view_orders(orders)
+    def status(self,status)->None:
+        print("-"*10)
+        print(f"1.To {status} food.")
+        print("0.To Exit.")
+        print("-"*10) 
+        
     
-                elif choice==6:
-                    view_sales_summary(orders)
-                elif choice==0:
+    def add_food(self):
+        while True:
+            self.status("Add")
+            
+            choice=read_int(">", 0, 1)
+            match choice:
+                case 0:
                     break
-  
+                case 1:
+                    display_food_category(self.menu)
+                    choice = read_int("Select category to add food :", 1, len(self.menu)) - 1
+                    
+                    category_block=self.menu[choice]
+                    items=category_block["items"]
+                    name = input("Enter food name: ").strip().title()
+                    
+                    for item in (items):
+                        if item['name'].lower() ==name.lower():
+                            console.print(f"{item['name']} already exist.")
+                            return 
+                    
+                    price=read_float("Price: ",0)
+                    stock_quantity=read_int("Stock: ",1)
+                    items.append({"name":name,"price":price,'stock_quantity':stock_quantity})
+                    console.print(f"[bold green]{name}[/bold green] added sucessfully✅")
+                    
+                    
+
+    def display_menu(self):
+
+        for cat_no, category_block in enumerate(self.menu,start=1):
+            category=category_block['category']
+            items=category_block['items']
+            console.print(f"\n[bold orange1]Category {cat_no}. {category.upper()}[/bold orange1]")
+            rows=[]
+            for item_no,item in enumerate(items,start= 1):
+               rows.append(
+                   [item_no,item['name'],item["price"],item["stock_quantity"]]
+               ) 
+            
+            print(
+                tabulate(rows,headers=["No","Name","Price","Stock"],tablefmt="fancy_grid")
+            )
+            
+            
+        
+    def display_item_by_category(self,choice_category):
+        
+        
+        categoryblock=self.menu[choice_category]
+        items=categoryblock["items"]
+        
+        rows=[]
+        if len(items)<=0:
+            print("No Food.")
+            return
+        for item_no,item in enumerate(items,start=1):
+            rows.append(
+                [item_no,item["name"],item['price'],item['stock_quantity']]
+            )
+        print(
+            tabulate(
+                rows,headers=["No","Name","Price","Stock"],tablefmt="fancy_grid"
+            )
+        )  
+        
+        
+    def delete_food(self):
+        while True:
+            self.status('Delete')
+            choice=read_int(" >",0,1)
+            match choice:
+                case 0:
+                    return 
+                case 1:
+                    display_food_category(self.menu)
+                    choice_category=read_int(">",1,len(self.menu))-1
+                    categoryblock=self.menu[choice_category]
+                    items=categoryblock["items"]
+
+                    if not items:
+                        console.print(f"Out of [bold blue]{categoryblock['category']}[/bold blue]")
+                        return
+                    self.display_item_by_category(choice_category)
+                    
+                    foods_nums=read_int("Enter number of foods to delete",1,len(items))
+                    indexes=[]
+                    for food_num in range(1,foods_nums+1):
+                        food_idx = read_int(f"{food_num}.Select the index  of food to delete: ", 1, len(items)) - 1
+                        indexes.append(food_idx)
+                    
+                    for index in sorted(set(indexes),reverse=True):
+                        removed=items.pop(index)
+                        console.print(f"[bold red]{removed['name']} deleted.[/bold red]")
+                        
+                                    
+    def update_price(self):
+        while True:
+            self.status("Update_price")
+            choice=read_int('>',0,1)
+            
+            match choice:
+                case 0:
+                    break
+                case 1:
+                    display_food_category(self.menu)
+                    choice_category=read_int(">",1,len(self.menu))-1
+                    categoryblock=self.menu[choice_category]
+                    items=categoryblock["items"]
+
+                    if not items:
+                        console.print(f"Out of [bold blue]{categoryblock['category']}[/bold blue]")
+                        return
+                    self.display_item_by_category(choice_category)
+                    food_idx=read_int("Enter the index of the food: ",1,len(items))-1
+                    old_price=items[food_idx]['price']
+                    new_price=read_float("Enter the price: ",10)
+                    items[food_idx]['price']=new_price
+                    console.print(
+                                f"[orange1]{old_price}[/orange1] price of {items[food_idx]['name']} updated to [bold green]{new_price}[/bold green] birr"
+                                )
+                    
 
     
+    
+    def update_stock(self):
+        while True:
+            self.status("Update_stock")
+            choice=read_int('>',0,1)
+            
+            match choice:
+                case 0:
+                    break
+                case 1:
+                    display_food_category(self.menu)
+                    choice_category=read_int(">",1,len(self.menu))-1
+                    categoryblock=self.menu[choice_category]
+                    items=categoryblock["items"]
+
+                    if not items:
+                        console.print(f"Out of [bold blue]{categoryblock['category']}[/bold blue]")
+                        return
+                    self.display_item_by_category(choice_category)
+                    food_idx=read_int("Enter the index of the food: ",1,len(items))-1
+                    old_stock=items[food_idx]['stock_quantity']
+                    new_stock=read_int("Enter the new_stock: ",10)
+                    items[food_idx]['stock_quantity']=new_stock
+                    console.print(f"[orange1]{old_stock}[/orange1]  value of {items[food_idx]['name']} updated to [bold green]{new_stock}[/bold green] ")
+    
+    
+    
+    def view_orders(self):
+        if not self.orders:
+            console.print("[bold red]There is no order.[/bold red]")
+            return
+        rows=[]
+        for food_index,order in enumerate(self.orders):
+            rows.append([order["order_id"],order["name"],order["phone"],order["total"],order["paid"],order["status"]])
+            #if not order['items']:
+                #print(f"There is no item in {order['items']}")
+            console.print(tabulate(
+            [rows[food_index]],headers=["order_id",'Customer name',"Phone_No","Total_birr","Paid","Status"],tablefmt="fancy_grid"
+            ))
+            
+            row_item=[[item["name"],item['price'],item['stock_quantity'],item['sub_price']]for item in order['items']]
+            console.print("[blue]___________________order_items__________________________________________[/blue]")
+            console.print(tabulate(
+            row_item,headers=["Name","Price","Quantity","Sub_total birr"],tablefmt="fancy_grid"
+            ))
+            console.print("**"*35)
+             
+
+
+    def sales_summary(self):
+        if not self.orders:
+            console.print("[bold red]There is no order.[/bold red]")
+            return
+        bar_graph(self.orders)
+        summary={
+            'total_sales':0,
+            'total_orders':len(self.orders),
+            'average_sales':0
+        }
+        if not self.orders:
+            console.print("[red3]There is no order.[/red3]")
+            return
+        
+        for order in self.orders:
+            summary ['total_sales']+= order['total']
+            
+        try:
+            summary["average_sales"]= summary["total_sales"]/summary["total_orders"]
+        
+        except ZeroDivisionError:
+            console.print(" [red]Error there is no order[/red]")
+            return
+
+        table = Table(title="Summary",title_style="bold green",style="bold blue")
+
+        table.add_column("Total Sales", style="cyan", justify="center")
+        
+        table.add_column("Total orders", style="green")
+        table.add_column("Average Sales", header_style="bold red",style="yellow")
+
+        table.add_row(f"{summary['total_sales']}", f"{summary['total_orders']}", f"{summary['average_sales']}")
+        console.print(table)
+        
+        console.print(now)  
+            
+    
+    def owner_menu(self):
+        console.print("[bold green]========================================\n||       GS FOOD ORDERING PLATFORM     ||\n========================================[/bold green]")
+        while True:
+            console.print("\n[bold blue]OWNER MENU[/bold blue]")
+            console.print("1. Add Food\n2. Delete Food\n3. Update Price\n4. Update Stock\n5. View Orders\n6. Sales Summary\n7. Display menu \n0.[bold red]log Out[/bold red]")
+            choice=read_int('Enter your choice>',0,7)
+            
+            if choice==0: break
+            elif choice==1: self.add_food()
+            elif choice==2: self.delete_food()
+            elif choice==3: self.update_price()
+            elif choice==4: self.update_stock()
+            elif choice==5: self.view_orders()
+            elif choice==6: self.sales_summary()
+            elif choice==7: self.display_menu()
+
+        
+        
+def owner_flow(menu, orders):
+    
+    console.print("[bold green]=== OWNER LOGIN ===[/bold green]")
+    if owner_login():
+        console.print("[bold green] 🗝️🔓 Welcome. Owner [/bold green]")
+        Owner(menu, orders).owner_menu()
+    
+    console.print(now) 
+    console.print("[bold red]locked🔒[/bold red]")
+
+
+
+
+
+
+
+

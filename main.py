@@ -2,12 +2,12 @@ import random
 from user import user_flow
 from owner import owner_flow
 from typing import Any, Dict, List
-
+from rich.console import Console
 MenuItem = Dict[str, Any]
 MenuCategory = Dict[str, Any]
 MenuType = List[MenuCategory]
 
-
+console = Console()
 def initialize_food_menu() -> MenuType:
     FOOD_MENU: MenuType = [
         {
@@ -102,29 +102,23 @@ def initialize_orders():
     return orders
 orders = initialize_orders()
 def main_menu():
-    print(
-        """
-    ========================================
-    ||       GS FOOD ORDERING PLATFORM     ||
-    ========================================
-"""
-    )
+    console.print("[bold green]========================================\n||       GS FOOD ORDERING PLATFORM     ||\n========================================[/bold green]")
     while True:
-        print("\nWhat is your role:\n1.Customer\n2.Owner\n3.Exit")
+        console.print("\n[blue]What is your role:[/blue]\n1.Customer\n2.Owner\n3.[bold red]Exit[/bold red]")
         read_input = input(">")
         if not read_input.isdigit():
-            print("\nPlease Enter only number.\n")
+            console.print("\n[bold red]Please Enter only number.[/bold red]\n")
             continue
         choice = int(read_input)
         if choice > 3 or choice < 1:
-            print("\nPlease enter only a number from 1 to 3\n")
+            console.print("\n[bold red]Please enter only a number from 1 to 3[/bold red]\n")
             continue
         if choice == 1:
             user_flow( initialize_food_menu(), orders)
         if choice == 2:
             owner_flow(initialize_food_menu(), orders)
         if choice == 3:
-            print("\nWe hope to serve you again soon!\n")
+            console.print("\n[bold blue]We hope to serve you again soon![/bold blue]\n")
             return
 
 if __name__ == "__main__":
