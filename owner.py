@@ -42,8 +42,8 @@ class Menu:
             
             elif choice==1:
                 display_food_category(food_menu)
-
                 category=select_food_category("Select food category: ", food_menu)
+
                     
             #     except ValueError:
             #         print("Enter numbers only.")
